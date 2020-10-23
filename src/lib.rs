@@ -253,10 +253,13 @@ fn do_constructor_call(req: BDKRequest) -> Result<serde_json::Value, BDKJNIError
             name
         );
 
+        let descriptor : &str = descriptor.as_str();
+        let change_descriptor : Option<&str> = change_descriptor.as_deref();
+
         let client = Client::new(&electrum_url, electrum_proxy.as_deref())?;
         let ptr: OpaquePtr<_> = Wallet::new(
-            &descriptor,
-            change_descriptor.as_deref(),
+            descriptor,
+            change_descriptor,
             network,
             tree,
             ElectrumBlockchain::from(client),
@@ -298,6 +301,7 @@ where
             serde_json::to_value(&wallet.get_new_address()?).map_err(BDKJNIError::Serialization)
         }
         Sync { max_address, .. } => {
+            debug!("max_address = {:?}", max_address);
             serde_json::to_value(&wallet.sync(noop_progress(), max_address)?)
                 .map_err(BDKJNIError::Serialization)
         }
